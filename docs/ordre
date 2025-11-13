@@ -1,0 +1,7 @@
+Un seul train considéré - pas de gestion d'erreur sauf si on a le temps
+On modélise la latence des circuits hydrauliques
+On passe directement de non préssieurisé à préssieurisé
+
+switch
+electrovannes avec paramètres
+cylindres
