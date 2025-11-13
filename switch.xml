@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.6//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_6.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+</declaration>
+	<template>
+		<name x="5" y="5">analogSwitch</name>
+		<parameter>bool &amp;switchState, chan &amp;handle, chan &amp;inChan, bool &amp;inVal,  chan &amp;outputChan, bool &amp;outputVal</parameter>
+		<declaration>clock switchTimer;</declaration>
+		<location id="id0" x="-170" y="17">
+			<name x="-238" y="8">Opened</name>
+		</location>
+		<location id="id1" x="59" y="-195">
+			<name x="34" y="-246">Closing</name>
+			<label kind="invariant" x="9" y="-229">switchTimer&lt;=8</label>
+		</location>
+		<location id="id2" x="297" y="0">
+			<name x="229" y="-9">Closed</name>
+			<label kind="invariant" x="237" y="8">switchTimer&lt;=120</label>
+		</location>
+		<location id="id3" x="59" y="212">
+			<name x="34" y="229">Opening</name>
+			<label kind="invariant" x="9" y="246">switchTimer&lt;=12</label>
+		</location>
+		<location id="id4" x="501" y="-153">
+			<name x="518" y="-162">tempReset</name>
+			<committed/>
+		</location>
+		<location id="id5" x="501" y="153">
+			<name x="526" y="145">tempOutUpdate</name>
+			<committed/>
+		</location>
+		<init ref="id0"/>
+		<transition id="id6">
+			<source ref="id5"/>
+			<target ref="id2"/>
+			<label kind="assignment" x="297" y="127">outputVal=inVal</label>
+			<nail x="357" y="119"/>
+		</transition>
+		<transition id="id7">
+			<source ref="id2"/>
+			<target ref="id5"/>
+			<label kind="synchronisation" x="459" y="17">inChan?</label>
+			<nail x="442" y="25"/>
+		</transition>
+		<transition id="id8">
+			<source ref="id4"/>
+			<target ref="id2"/>
+			<label kind="assignment" x="450" y="-34">switchTimer=0</label>
+			<nail x="450" y="-34"/>
+		</transition>
+		<transition id="id9">
+			<source ref="id2"/>
+			<target ref="id4"/>
+			<label kind="synchronisation" x="314" y="-144">handle?</label>
+			<nail x="365" y="-127"/>
+		</transition>
+		<transition id="id10">
+			<source ref="id3"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="68" y="-9">handle?</label>
+			<label kind="assignment" x="68" y="8">switchTimer=0</label>
+		</transition>
+		<transition id="id11">
+			<source ref="id3"/>
+			<target ref="id0"/>
+			<label kind="guard" x="-195" y="136">switchTimer&gt;=12</label>
+			<label kind="assignment" x="-331" y="119">switchTimer=0, switchState=false</label>
+		</transition>
+		<transition id="id12">
+			<source ref="id2"/>
+			<target ref="id3"/>
+			<label kind="guard" x="136" y="144">switchTimer&gt;=120</label>
+			<label kind="synchronisation" x="136" y="161">outputChan!</label>
+			<label kind="assignment" x="136" y="178">switchTimer=0, outputVal=false</label>
+		</transition>
+		<transition id="id13">
+			<source ref="id1"/>
+			<target ref="id2"/>
+			<label kind="guard" x="153" y="-204">switchTimer&gt;=8</label>
+			<label kind="synchronisation" x="272" y="-204">outputChan!</label>
+			<label kind="assignment" x="153" y="-187">switchTimer=0, 
+switchState=true, 
+outputVal=inVal</label>
+		</transition>
+		<transition id="id14">
+			<source ref="id0"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="-153" y="-76">handle?</label>
+			<label kind="assignment" x="-178" y="-93">switchTimer=0</label>
+		</transition>
+	</template>
+	<template>
+		<name>anSwitchTester</name>
+		<parameter>chan &amp;handleChan, chan &amp;inChan, bool &amp;inVal, chan &amp;outputChan</parameter>
+		<location id="id15" x="-85" y="-59">
+		</location>
+		<init ref="id15"/>
+		<transition id="id16">
+			<source ref="id15"/>
+			<target ref="id15"/>
+			<label kind="synchronisation" x="-212" y="-161">handleChan!</label>
+			<nail x="-178" y="-110"/>
+			<nail x="-102" y="-161"/>
+		</transition>
+		<transition id="id17">
+			<source ref="id15"/>
+			<target ref="id15"/>
+			<label kind="synchronisation" x="-221" y="34">inChan!</label>
+			<nail x="-136" y="42"/>
+			<nail x="-195" y="-17"/>
+		</transition>
+		<transition id="id18">
+			<source ref="id15"/>
+			<target ref="id15"/>
+			<label kind="synchronisation" x="-17" y="34">inChan!</label>
+			<label kind="assignment" x="-17" y="17">inVal = !inVal</label>
+			<nail x="8" y="-8"/>
+			<nail x="-51" y="42"/>
+		</transition>
+		<transition id="id19">
+			<source ref="id15"/>
+			<target ref="id15"/>
+			<label kind="synchronisation" x="0" y="-136">outputChan?</label>
+			<nail x="-34" y="-144"/>
+			<nail x="25" y="-85"/>
+		</transition>
+	</template>
+	<system>chan pilotHandle, inSignal, outSignal;
+bool switchState = true, elecInput = true, elecOutput = false;
+switch = analogSwitch(switchState, pilotHandle, inSignal, elecInput, outSignal, elecOutput);
+tester = anSwitchTester(pilotHandle, inSignal, elecInput, outSignal);
+
+system switch, tester;</system>
+	<queries>
+		<query>
+			<formula>A[] not deadlock</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2025-11-13 12:10:55 +0100">
+			</result>
+		</query>
+		<query>
+			<formula>E&lt;&gt; switch.Opened</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2025-11-13 12:11:01 +0100">
+			</result>
+		</query>
+		<query>
+			<formula>E&lt;&gt; switch.Closed</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2025-11-13 12:11:06 +0100">
+			</result>
+		</query>
+	</queries>
+</nta>
