@@ -6,21 +6,30 @@
 	<template>
 		<name x="5" y="5">analogSwitch</name>
 		<parameter>bool &amp;switchState, chan &amp;handle, chan &amp;inChan, bool &amp;inVal,  chan &amp;outputChan, bool &amp;outputVal</parameter>
-		<declaration>clock switchTimer;</declaration>
-		<location id="id0" x="-170" y="17">
-			<name x="-238" y="8">Opened</name>
+		<declaration>// time from open to closed : 0.8 secondes
+const int o2c = 8;
+
+// time from closed to opened : 1.2 secondes
+const int c2o = 12;
+
+// time for the switch to remain closed : 20 secondes
+const int cTime = 200;
+
+clock switchTimer;</declaration>
+		<location id="id0" x="-161" y="17">
+			<name x="-229" y="8">Opened</name>
 		</location>
 		<location id="id1" x="59" y="-195">
 			<name x="34" y="-246">Closing</name>
-			<label kind="invariant" x="9" y="-229">switchTimer&lt;=8</label>
+			<label kind="invariant" x="9" y="-229">switchTimer&lt;=o2c</label>
 		</location>
 		<location id="id2" x="297" y="0">
 			<name x="229" y="-9">Closed</name>
-			<label kind="invariant" x="237" y="8">switchTimer&lt;=120</label>
+			<label kind="invariant" x="237" y="8">switchTimer&lt;=cTime</label>
 		</location>
 		<location id="id3" x="59" y="212">
 			<name x="34" y="229">Opening</name>
-			<label kind="invariant" x="9" y="246">switchTimer&lt;=12</label>
+			<label kind="invariant" x="9" y="246">switchTimer&lt;=c2o</label>
 		</location>
 		<location id="id4" x="501" y="-153">
 			<name x="518" y="-162">tempReset</name>
@@ -64,21 +73,22 @@
 		<transition id="id11">
 			<source ref="id3"/>
 			<target ref="id0"/>
-			<label kind="guard" x="-195" y="136">switchTimer&gt;=12</label>
-			<label kind="assignment" x="-331" y="119">switchTimer=0, switchState=false</label>
+			<label kind="guard" x="-195" y="136">switchTimer&gt;=c2o</label>
+			<label kind="assignment" x="-331" y="119">switchTimer=0</label>
 		</transition>
 		<transition id="id12">
 			<source ref="id2"/>
 			<target ref="id3"/>
-			<label kind="guard" x="136" y="144">switchTimer&gt;=120</label>
+			<label kind="guard" x="136" y="144">switchTimer&gt;=cTime</label>
 			<label kind="synchronisation" x="136" y="161">outputChan!</label>
-			<label kind="assignment" x="136" y="178">switchTimer=0, outputVal=false</label>
+			<label kind="assignment" x="136" y="178">switchTimer=0, outputVal=false, 
+switchState=false</label>
 		</transition>
 		<transition id="id13">
 			<source ref="id1"/>
 			<target ref="id2"/>
-			<label kind="guard" x="153" y="-204">switchTimer&gt;=8</label>
-			<label kind="synchronisation" x="272" y="-204">outputChan!</label>
+			<label kind="guard" x="153" y="-204">switchTimer&gt;=o2c</label>
+			<label kind="synchronisation" x="289" y="-204">outputChan!</label>
 			<label kind="assignment" x="153" y="-187">switchTimer=0, 
 switchState=true, 
 outputVal=inVal</label>
@@ -94,6 +104,7 @@ outputVal=inVal</label>
 		<name>anSwitchTester</name>
 		<parameter>chan &amp;handleChan, chan &amp;inChan, bool &amp;inVal, chan &amp;outputChan</parameter>
 		<location id="id15" x="-85" y="-59">
+			<name x="-59" y="-68">i</name>
 		</location>
 		<init ref="id15"/>
 		<transition id="id16">
@@ -127,28 +138,95 @@ outputVal=inVal</label>
 		</transition>
 	</template>
 	<system>chan pilotHandle, inSignal, outSignal;
-bool switchState = true, elecInput = true, elecOutput = false;
+bool switchState = false, elecInput = true, elecOutput = false;
 switch = analogSwitch(switchState, pilotHandle, inSignal, elecInput, outSignal, elecOutput);
 tester = anSwitchTester(pilotHandle, inSignal, elecInput, outSignal);
 
 system switch, tester;</system>
 	<queries>
+		<option key="--diagnostic" value="0"/>
 		<query>
 			<formula>A[] not deadlock</formula>
 			<comment/>
-			<result outcome="success" type="quality" timestamp="2025-11-13 12:10:55 +0100">
+			<result outcome="success" type="quality" timestamp="2025-11-20 09:05:26 +0100">
+				<option key="--diagnostic" value="0"/>
 			</result>
 		</query>
 		<query>
 			<formula>E&lt;&gt; switch.Opened</formula>
 			<comment/>
-			<result outcome="success" type="quality" timestamp="2025-11-13 12:11:01 +0100">
+			<result outcome="success" type="quality" timestamp="2025-11-20 09:05:29 +0100">
+				<option key="--diagnostic" value="0"/>
 			</result>
 		</query>
 		<query>
 			<formula>E&lt;&gt; switch.Closed</formula>
 			<comment/>
-			<result outcome="success" type="quality" timestamp="2025-11-13 12:11:06 +0100">
+			<result outcome="success" type="quality" timestamp="2025-11-20 09:05:32 +0100">
+				<option key="--diagnostic" value="0"/>
+			</result>
+		</query>
+		<query>
+			<formula>E&lt;&gt; switch.Opening</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2025-11-20 09:05:34 +0100">
+				<option key="--diagnostic" value="0"/>
+			</result>
+		</query>
+		<query>
+			<formula>E&lt;&gt; switch.Closing</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2025-11-20 09:05:35 +0100">
+				<option key="--diagnostic" value="0"/>
+			</result>
+		</query>
+		<query>
+			<formula>A[] (switch.Closed or switch.tempReset or switch.tempOutUpdate) imply switchState</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2025-11-20 09:05:37 +0100">
+				<option key="--diagnostic" value="0"/>
+			</result>
+		</query>
+		<query>
+			<formula>A[] !(switch.Closed or switch.tempReset or switch.tempOutUpdate) imply !switchState</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2025-11-20 09:05:38 +0100">
+				<option key="--diagnostic" value="0"/>
+			</result>
+		</query>
+		<query>
+			<formula>A[] (switch.Closed or switch.tempReset) imply (elecOutput == elecInput)</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2025-11-20 09:08:01 +0100">
+				<option key="--diagnostic" value="0"/>
+			</result>
+		</query>
+		<query>
+			<formula>A[] !switchState imply elecOutput == 0</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2025-11-20 09:05:39 +0100">
+				<option key="--diagnostic" value="0"/>
+			</result>
+		</query>
+		<query>
+			<formula>A[] switch.Closed imply (switch.switchTimer &gt;=0 and switch.switchTimer &lt;= 200)</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2025-11-20 09:05:40 +0100">
+				<option key="--diagnostic" value="0"/>
+			</result>
+		</query>
+		<query>
+			<formula>A[] switch.Opening imply (switch.switchTimer &gt;= 0 and switch.switchTimer &lt;= 12)</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2025-11-20 09:05:49 +0100">
+				<option key="--diagnostic" value="0"/>
+			</result>
+		</query>
+		<query>
+			<formula>A[] switch.Closing imply (switch.switchTimer &gt;= 0 and switch.switchTimer &lt;= 8)</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2025-11-20 09:05:50 +0100">
+				<option key="--diagnostic" value="0"/>
 			</result>
 		</query>
 	</queries>
