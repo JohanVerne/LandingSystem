@@ -4,22 +4,260 @@
 	<declaration>// Place global declarations here.
 </declaration>
 	<template>
-		<name x="5" y="5">Template</name>
-		<declaration>// Place local declarations here.
-</declaration>
-		<location id="id0" x="0" y="0">
+		<name x="5" y="5">electroValve</name>
+		<parameter>bool &amp;EVal, chan &amp;EChan, int &amp;HoutVal, chan &amp;HoutChan </parameter>
+		<declaration>// time for the pressure to go from 0 to Hin
+int pGrowTime = 100;
+
+// time for the pressure to go from Hin to 0
+int pReduceTime = 360;
+
+// time to increment pressure (as % of Hin/(pressure transition time))
+int incremValue = 10;
+
+// Hin value to only have integer values in calculations 
+// Suppose Hin constant to keep Hin as int instead of double, which would break symbolic simulator and tests
+int Hin = 360;
+clock timer;</declaration>
+		<location id="id0" x="-612" y="-136">
+			<name x="-637" y="-170">Opened</name>
+			<committed/>
+		</location>
+		<location id="id1" x="-382" y="-25">
+			<name x="-391" y="-68">Closing</name>
+			<label kind="invariant" x="-416" y="-8">HoutVal &lt;= Hin</label>
+		</location>
+		<location id="id2" x="-816" y="-25">
+			<name x="-841" y="-76">Opening</name>
+			<label kind="invariant" x="-841" y="-59">HoutVal&gt;=0</label>
+		</location>
+		<location id="id3" x="-612" y="102">
+			<name x="-637" y="119">Closed</name>
+		</location>
+		<location id="id4" x="-450" y="-136">
+			<committed/>
+		</location>
+		<location id="id5" x="-790" y="102">
+			<committed/>
+		</location>
+		<location id="id6" x="-603" y="-59">
+			<committed/>
+		</location>
+		<location id="id7" x="-603" y="25">
+			<committed/>
 		</location>
 		<init ref="id0"/>
+		<transition id="id8">
+			<source ref="id7"/>
+			<target ref="id1"/>
+			<label kind="guard" x="-569" y="-17">EVal == true</label>
+		</transition>
+		<transition id="id9">
+			<source ref="id6"/>
+			<target ref="id2"/>
+			<label kind="guard" x="-731" y="-42">EVal == false</label>
+		</transition>
+		<transition id="id10">
+			<source ref="id6"/>
+			<target ref="id1"/>
+			<label kind="guard" x="-569" y="-59">EVal == true</label>
+			<label kind="assignment" x="-569" y="-42">timer = 0</label>
+			<nail x="-484" y="-59"/>
+		</transition>
+		<transition id="id11">
+			<source ref="id7"/>
+			<target ref="id2"/>
+			<label kind="guard" x="-714" y="-17">EVal == false</label>
+			<label kind="assignment" x="-714" y="0">timer = 0</label>
+			<nail x="-697" y="25"/>
+		</transition>
+		<transition id="id12">
+			<source ref="id1"/>
+			<target ref="id7"/>
+			<label kind="synchronisation" x="-569" y="25">EChan?</label>
+			<nail x="-501" y="25"/>
+		</transition>
+		<transition id="id13">
+			<source ref="id5"/>
+			<target ref="id3"/>
+			<label kind="guard" x="-773" y="59">EVal == true</label>
+			<label kind="assignment" x="-748" y="85">timer = 0</label>
+			<nail x="-714" y="76"/>
+		</transition>
+		<transition id="id14">
+			<source ref="id5"/>
+			<target ref="id2"/>
+			<label kind="guard" x="-909" y="59">EVal == false</label>
+			<label kind="assignment" x="-892" y="76">timer = 0</label>
+		</transition>
+		<transition id="id15">
+			<source ref="id3"/>
+			<target ref="id5"/>
+			<label kind="synchronisation" x="-748" y="110">EChan?</label>
+		</transition>
+		<transition id="id16">
+			<source ref="id4"/>
+			<target ref="id0"/>
+			<label kind="guard" x="-586" y="-110">EVal == false</label>
+			<label kind="assignment" x="-578" y="-93">timer = 0</label>
+			<nail x="-535" y="-102"/>
+		</transition>
+		<transition id="id17">
+			<source ref="id4"/>
+			<target ref="id1"/>
+			<label kind="guard" x="-416" y="-110">EVal == true</label>
+			<label kind="assignment" x="-416" y="-93">timer = 0</label>
+		</transition>
+		<transition id="id18">
+			<source ref="id2"/>
+			<target ref="id6"/>
+			<label kind="synchronisation" x="-722" y="-76">EChan?</label>
+			<nail x="-706" y="-59"/>
+		</transition>
+		<transition id="id19">
+			<source ref="id2"/>
+			<target ref="id0"/>
+			<label kind="guard" x="-765" y="-127">HoutVal &lt;= 0</label>
+			<label kind="synchronisation" x="-756" y="-144">HoutChan!</label>
+			<label kind="assignment" x="-782" y="-110">HoutVal = 0</label>
+		</transition>
+		<transition id="id20">
+			<source ref="id1"/>
+			<target ref="id3"/>
+			<label kind="guard" x="-510" y="51">HoutVal &gt;=Hin</label>
+			<label kind="synchronisation" x="-510" y="85">HoutChan!</label>
+			<label kind="assignment" x="-510" y="68">HoutVal = Hin</label>
+		</transition>
+		<transition id="id21">
+			<source ref="id2"/>
+			<target ref="id2"/>
+			<label kind="guard" x="-1207" y="-51">timer &gt;= incremValue / pReduceTime</label>
+			<label kind="synchronisation" x="-1003" y="-34">HoutChan!</label>
+			<label kind="assignment" x="-1224" y="-8">timer = 0,
+HoutVal = HoutVal - ((Hin / pReduceTime) * incremValue)</label>
+			<nail x="-918" y="17"/>
+			<nail x="-918" y="-59"/>
+		</transition>
+		<transition id="id22">
+			<source ref="id1"/>
+			<target ref="id1"/>
+			<label kind="guard" x="-272" y="-42">timer &gt;= incremValue / pGrowTime</label>
+			<label kind="synchronisation" x="-272" y="17">HoutChan!</label>
+			<label kind="assignment" x="-272" y="-25">timer = 0,
+HoutVal = HoutVal + (Hin / pGrowTime) * incremValue</label>
+			<nail x="-280" y="17"/>
+			<nail x="-280" y="-59"/>
+		</transition>
+		<transition id="id23">
+			<source ref="id0"/>
+			<target ref="id4"/>
+			<label kind="synchronisation" x="-561" y="-161">EChan?</label>
+		</transition>
 	</template>
-	<system>// Place template instantiations here.
-Process = Template();
-// List one or more processes to be composed into a system.
-system Process;
+	<template>
+		<name>eValveTester</name>
+		<parameter>bool &amp;EVal, chan &amp;EChan, chan &amp;HoutChan</parameter>
+		<location id="id24" x="0" y="0">
+			<name x="-10" y="-34">i</name>
+		</location>
+		<init ref="id24"/>
+		<transition id="id25">
+			<source ref="id24"/>
+			<target ref="id24"/>
+			<label kind="synchronisation" x="-187" y="-8">HoutChan?</label>
+			<nail x="-110" y="34"/>
+			<nail x="-110" y="-34"/>
+		</transition>
+		<transition id="id26">
+			<source ref="id24"/>
+			<target ref="id24"/>
+			<label kind="synchronisation" x="127" y="-17">EChan!</label>
+			<label kind="assignment" x="127" y="0">EVal = !EVal</label>
+			<nail x="110" y="-34"/>
+			<nail x="110" y="42"/>
+		</transition>
+	</template>
+	<system>chan elecPortChan, valveOutputChan;
+bool valveElecPort = false;
+int valveOutputPressure = 0;
+
+valve =  electroValve(valveElecPort, elecPortChan, valveOutputPressure, valveOutputChan);
+tester = eValveTester(valveElecPort, elecPortChan, valveOutputChan);
+
+system valve, tester;
 </system>
 	<queries>
+		<option key="--diagnostic" value="0"/>
 		<query>
-			<formula/>
+			<formula>A[] not deadlock</formula>
 			<comment/>
+			<result outcome="success" type="quality" timestamp="2025-11-20 12:01:44 +0100">
+				<option key="--diagnostic" value="0"/>
+			</result>
+		</query>
+		<query>
+			<formula>E&lt;&gt; valve.Opened</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2025-11-20 12:01:46 +0100">
+				<option key="--diagnostic" value="0"/>
+			</result>
+		</query>
+		<query>
+			<formula>E&lt;&gt; valve.Closed</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2025-11-20 12:01:49 +0100">
+				<option key="--diagnostic" value="0"/>
+			</result>
+		</query>
+		<query>
+			<formula>E&lt;&gt; valve.Opening</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2025-11-20 12:01:52 +0100">
+				<option key="--diagnostic" value="0"/>
+			</result>
+		</query>
+		<query>
+			<formula>E&lt;&gt; valve.Closing</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2025-11-20 12:01:53 +0100">
+				<option key="--diagnostic" value="0"/>
+			</result>
+		</query>
+		<query>
+			<formula>A[] valve.Opened imply valve.Hout == 0</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2025-11-20 11:16:07 +0100">
+				<option key="--diagnostic" value="0"/>
+			</result>
+		</query>
+		<query>
+			<formula>A[] valve.Closed imply valve.Hout == valve.Hin</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2025-11-20 11:16:30 +0100">
+				<option key="--diagnostic" value="0"/>
+			</result>
+		</query>
+		<query>
+			<formula>A[] (valve.Opening or valve.Closing) imply (valve.Hout &lt;= valve.Hin and valve.Hout &gt;= 0)</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2025-11-20 11:17:54 +0100">
+				<option key="--diagnostic" value="0"/>
+			</result>
+		</query>
+		<query>
+			<formula>A[] valveElecPort imply not (valve.Opening or valve.Opened) </formula>
+			<comment>Ecrit comme ça pour ne pas avoir à référencer les états de transition
+Sinon la query est A[] valveElecPort imply (valve.Closing or valve.Closed) </comment>
+			<result outcome="success" type="quality" timestamp="2025-11-20 11:21:41 +0100">
+				<option key="--diagnostic" value="0"/>
+			</result>
+		</query>
+		<query>
+			<formula>A[] !valveElecPort imply not (valve.Closing or valve.Closed) </formula>
+			<comment>Pareil</comment>
+			<result outcome="success" type="quality" timestamp="2025-11-20 11:21:58 +0100">
+				<option key="--diagnostic" value="0"/>
+			</result>
 		</query>
 	</queries>
 </nta>

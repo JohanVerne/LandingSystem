@@ -43,6 +43,7 @@ clock switchTimer;</declaration>
 		<transition id="id6">
 			<source ref="id5"/>
 			<target ref="id2"/>
+			<label kind="synchronisation" x="263" y="102">outputChan!</label>
 			<label kind="assignment" x="297" y="127">outputVal=inVal</label>
 			<nail x="357" y="119"/>
 		</transition>
@@ -74,7 +75,7 @@ clock switchTimer;</declaration>
 			<source ref="id3"/>
 			<target ref="id0"/>
 			<label kind="guard" x="-195" y="136">switchTimer&gt;=c2o</label>
-			<label kind="assignment" x="-331" y="119">switchTimer=0</label>
+			<label kind="assignment" x="-170" y="153">switchTimer=0</label>
 		</transition>
 		<transition id="id12">
 			<source ref="id2"/>
