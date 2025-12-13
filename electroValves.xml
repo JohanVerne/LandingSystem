@@ -13,7 +13,7 @@ int pGrowTime = 100;
 int pReduceTime = 360;
 
 // time to increment pressure (as % of Hin/(pressure transition time))
-int incremValue = 10;
+int incremValue = 20;
 
 // Hin value to only have integer values in calculations 
 // Suppose Hin constant to keep Hin as int instead of double, which would break symbolic simulator and tests
@@ -21,7 +21,6 @@ int Hin = 360;
 clock timer;</declaration>
 		<location id="id0" x="-612" y="-136">
 			<name x="-637" y="-170">Opened</name>
-			<committed/>
 		</location>
 		<location id="id1" x="-382" y="-25">
 			<name x="-391" y="-68">Closing</name>
@@ -165,7 +164,7 @@ HoutVal = HoutVal + (Hin / pGrowTime) * incremValue</label>
 			<source ref="id24"/>
 			<target ref="id24"/>
 			<label kind="synchronisation" x="-187" y="-8">HoutChan?</label>
-			<nail x="-110" y="34"/>
+			<nail x="-110" y="42"/>
 			<nail x="-110" y="-34"/>
 		</transition>
 		<transition id="id26">
@@ -191,56 +190,56 @@ system valve, tester;
 		<query>
 			<formula>A[] not deadlock</formula>
 			<comment/>
-			<result outcome="success" type="quality" timestamp="2025-11-20 12:01:44 +0100">
+			<result outcome="success" type="quality" timestamp="2025-12-13 21:23:40 +0100">
 				<option key="--diagnostic" value="0"/>
 			</result>
 		</query>
 		<query>
 			<formula>E&lt;&gt; valve.Opened</formula>
 			<comment/>
-			<result outcome="success" type="quality" timestamp="2025-11-20 12:01:46 +0100">
+			<result outcome="success" type="quality" timestamp="2025-12-13 21:23:43 +0100">
 				<option key="--diagnostic" value="0"/>
 			</result>
 		</query>
 		<query>
 			<formula>E&lt;&gt; valve.Closed</formula>
 			<comment/>
-			<result outcome="success" type="quality" timestamp="2025-11-20 12:01:49 +0100">
+			<result outcome="success" type="quality" timestamp="2025-12-13 21:23:45 +0100">
 				<option key="--diagnostic" value="0"/>
 			</result>
 		</query>
 		<query>
 			<formula>E&lt;&gt; valve.Opening</formula>
 			<comment/>
-			<result outcome="success" type="quality" timestamp="2025-11-20 12:01:52 +0100">
+			<result outcome="success" type="quality" timestamp="2025-12-13 21:23:47 +0100">
 				<option key="--diagnostic" value="0"/>
 			</result>
 		</query>
 		<query>
 			<formula>E&lt;&gt; valve.Closing</formula>
 			<comment/>
-			<result outcome="success" type="quality" timestamp="2025-11-20 12:01:53 +0100">
+			<result outcome="success" type="quality" timestamp="2025-12-13 21:23:49 +0100">
 				<option key="--diagnostic" value="0"/>
 			</result>
 		</query>
 		<query>
-			<formula>A[] valve.Opened imply valve.Hout == 0</formula>
+			<formula>A[] valve.Opened imply valve.HoutVal == 0</formula>
 			<comment/>
-			<result outcome="success" type="quality" timestamp="2025-11-20 11:16:07 +0100">
+			<result outcome="success" type="quality" timestamp="2025-12-13 21:24:19 +0100">
 				<option key="--diagnostic" value="0"/>
 			</result>
 		</query>
 		<query>
-			<formula>A[] valve.Closed imply valve.Hout == valve.Hin</formula>
+			<formula>A[] valve.Closed imply valve.HoutVal == valve.Hin</formula>
 			<comment/>
-			<result outcome="success" type="quality" timestamp="2025-11-20 11:16:30 +0100">
+			<result outcome="success" type="quality" timestamp="2025-12-13 21:24:25 +0100">
 				<option key="--diagnostic" value="0"/>
 			</result>
 		</query>
 		<query>
-			<formula>A[] (valve.Opening or valve.Closing) imply (valve.Hout &lt;= valve.Hin and valve.Hout &gt;= 0)</formula>
+			<formula>A[] (valve.Opening or valve.Closing) imply (valve.HoutVal &lt;= valve.Hin and valve.HoutVal &gt;= 0)</formula>
 			<comment/>
-			<result outcome="success" type="quality" timestamp="2025-11-20 11:17:54 +0100">
+			<result outcome="success" type="quality" timestamp="2025-12-13 21:24:36 +0100">
 				<option key="--diagnostic" value="0"/>
 			</result>
 		</query>
@@ -248,14 +247,14 @@ system valve, tester;
 			<formula>A[] valveElecPort imply not (valve.Opening or valve.Opened) </formula>
 			<comment>Ecrit comme ça pour ne pas avoir à référencer les états de transition
 Sinon la query est A[] valveElecPort imply (valve.Closing or valve.Closed) </comment>
-			<result outcome="success" type="quality" timestamp="2025-11-20 11:21:41 +0100">
+			<result outcome="success" type="quality" timestamp="2025-12-13 21:24:37 +0100">
 				<option key="--diagnostic" value="0"/>
 			</result>
 		</query>
 		<query>
 			<formula>A[] !valveElecPort imply not (valve.Closing or valve.Closed) </formula>
 			<comment>Pareil</comment>
-			<result outcome="success" type="quality" timestamp="2025-11-20 11:21:58 +0100">
+			<result outcome="success" type="quality" timestamp="2025-12-13 21:24:39 +0100">
 				<option key="--diagnostic" value="0"/>
 			</result>
 		</query>

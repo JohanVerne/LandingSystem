@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.6//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_6.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+</declaration>
+	<template>
+		<name x="9" y="9">doorCylinder</name>
+		<parameter>chan &amp;openChan, chan &amp;closeChan, int timeClosedToOpened, int timeLockClose, int timeUnlockClosed, int timeOpenedToClosed</parameter>
+		<declaration>clock timer;
+</declaration>
+		<location id="id0" x="-34" y="-144">
+			<name x="-76" y="-178">lockedClose</name>
+		</location>
+		<location id="id1" x="94" y="-42">
+			<name x="111" y="-59">unlockingfromClosed</name>
+			<label kind="invariant" x="111" y="-42">timer&lt;=timeUnlockClosed</label>
+		</location>
+		<location id="id2" x="94" y="68">
+			<name x="111" y="60">opening</name>
+			<label kind="invariant" x="111" y="77">timer &lt;=timeClosedToOpened</label>
+		</location>
+		<location id="id3" x="-34" y="162">
+			<name x="-51" y="179">Open</name>
+		</location>
+		<location id="id4" x="-161" y="68">
+			<name x="-238" y="51">closing</name>
+			<label kind="invariant" x="-391" y="68">timer &lt;=timeOpenedToClosed</label>
+		</location>
+		<location id="id5" x="-161" y="-51">
+			<name x="-289" y="-68">lockingClosed</name>
+			<label kind="invariant" x="-365" y="-51">timer &lt;= timeLockClose</label>
+		</location>
+		<init ref="id0"/>
+		<transition id="id6">
+			<source ref="id4"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="-68" y="-34">openChan?</label>
+			<label kind="assignment" x="-68" y="-17">timer = 0</label>
+			<nail x="-34" y="0"/>
+		</transition>
+		<transition id="id7">
+			<source ref="id2"/>
+			<target ref="id4"/>
+			<label kind="synchronisation" x="-76" y="102">closeChan?</label>
+			<label kind="assignment" x="-76" y="85">timer = 0</label>
+		</transition>
+		<transition id="id8">
+			<source ref="id4"/>
+			<target ref="id5"/>
+			<label kind="guard" x="-374" y="-8">timer&gt;=timeOpenedToClosed</label>
+			<label kind="assignment" x="-255" y="9">timer = 0</label>
+		</transition>
+		<transition id="id9">
+			<source ref="id5"/>
+			<target ref="id0"/>
+			<label kind="guard" x="-272" y="-136">timer &gt;= timeLockClose</label>
+		</transition>
+		<transition id="id10">
+			<source ref="id3"/>
+			<target ref="id4"/>
+			<label kind="synchronisation" x="-170" y="119">closeChan?</label>
+			<label kind="assignment" x="-161" y="136">timer = 0</label>
+		</transition>
+		<transition id="id11">
+			<source ref="id2"/>
+			<target ref="id3"/>
+			<label kind="guard" x="26" y="119">timer &gt;=timeClosedToOpened</label>
+		</transition>
+		<transition id="id12">
+			<source ref="id1"/>
+			<target ref="id2"/>
+			<label kind="guard" x="102" y="0">timer&gt;=timeUnlockClosed</label>
+			<label kind="assignment" x="102" y="17">timer = 0</label>
+		</transition>
+		<transition id="id13">
+			<source ref="id0"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="51" y="-127">openChan?</label>
+			<label kind="assignment" x="60" y="-110">timer=0</label>
+		</transition>
+	</template>
+	<template>
+		<name>gearCylinder</name>
+		<parameter>chan &amp;lowerChan, chan &amp;raiseChan, int timeUnlockDown, int timeDownToHigh, int timeLockHigh, int timeUnlockHigh, int timeHighToDown, int timeLockDown</parameter>
+		<declaration>clock timer;</declaration>
+		<location id="id14" x="-51" y="-476">
+			<name x="-85" y="-510">lockedHigh</name>
+		</location>
+		<location id="id15" x="85" y="-374">
+			<name x="111" y="-391">unlockingFromHigh</name>
+			<label kind="invariant" x="102" y="-374">timer&lt;=timeUnlockHigh</label>
+		</location>
+		<location id="id16" x="85" y="-246">
+			<name x="102" y="-263">lowering</name>
+			<label kind="invariant" x="102" y="-246">timer &lt;= timeHighToDown</label>
+		</location>
+		<location id="id17" x="85" y="-110">
+			<name x="102" y="-119">lockingDown</name>
+			<label kind="invariant" x="102" y="-102">timer &lt;= timeLockDown</label>
+		</location>
+		<location id="id18" x="-42" y="-17">
+			<name x="-85" y="9">lockedDown</name>
+		</location>
+		<location id="id19" x="-178" y="-374">
+			<name x="-289" y="-391">lockingHigh</name>
+			<label kind="invariant" x="-374" y="-374">timer &lt;= timeLockHigh</label>
+		</location>
+		<location id="id20" x="-178" y="-246">
+			<name x="-255" y="-263">raising</name>
+			<label kind="invariant" x="-382" y="-246">timer &lt;= timeDownToHigh</label>
+		</location>
+		<location id="id21" x="-178" y="-110">
+			<name x="-348" y="-119">unlockingFromDown</name>
+			<label kind="invariant" x="-391" y="-102">timer &lt;= timeUnlockDown</label>
+		</location>
+		<init ref="id14"/>
+		<transition id="id22">
+			<source ref="id16"/>
+			<target ref="id20"/>
+			<label kind="synchronisation" x="-93" y="-340">raiseChan?</label>
+			<label kind="assignment" x="-93" y="-323">timer = 0</label>
+			<nail x="-51" y="-297"/>
+		</transition>
+		<transition id="id23">
+			<source ref="id20"/>
+			<target ref="id16"/>
+			<label kind="synchronisation" x="-93" y="-178">lowerChan?</label>
+			<label kind="assignment" x="-93" y="-161">timer = 0</label>
+			<nail x="-51" y="-178"/>
+		</transition>
+		<transition id="id24">
+			<source ref="id19"/>
+			<target ref="id14"/>
+			<label kind="guard" x="-263" y="-467">timer &gt;= timeLockHigh</label>
+		</transition>
+		<transition id="id25">
+			<source ref="id20"/>
+			<target ref="id19"/>
+			<label kind="guard" x="-374" y="-340">timer &gt;= timeDownToHigh</label>
+			<label kind="assignment" x="-263" y="-323">timer = 0</label>
+		</transition>
+		<transition id="id26">
+			<source ref="id21"/>
+			<target ref="id20"/>
+			<label kind="guard" x="-382" y="-178">timer &gt;= timeUnlockDown</label>
+			<label kind="assignment" x="-272" y="-195">timer = 0</label>
+		</transition>
+		<transition id="id27">
+			<source ref="id18"/>
+			<target ref="id21"/>
+			<label kind="synchronisation" x="-195" y="-68">raiseChan?</label>
+			<label kind="assignment" x="-187" y="-51">timer = 0</label>
+		</transition>
+		<transition id="id28">
+			<source ref="id17"/>
+			<target ref="id18"/>
+			<label kind="guard" x="26" y="-59">timer &gt;= timeLockDown</label>
+		</transition>
+		<transition id="id29">
+			<source ref="id16"/>
+			<target ref="id17"/>
+			<label kind="guard" x="102" y="-187">timer &gt;= timeHighToDown</label>
+			<label kind="assignment" x="102" y="-170">timer = 0</label>
+		</transition>
+		<transition id="id30">
+			<source ref="id15"/>
+			<target ref="id16"/>
+			<label kind="guard" x="111" y="-314">timer &gt;= timeUnlockHigh</label>
+			<label kind="assignment" x="111" y="-297">timer = 0</label>
+		</transition>
+		<transition id="id31">
+			<source ref="id14"/>
+			<target ref="id15"/>
+			<label kind="synchronisation" x="26" y="-450">lowerChan?</label>
+			<label kind="assignment" x="34" y="-433">timer = 0</label>
+		</transition>
+	</template>
+	<template>
+		<name>CylinderTester</name>
+		<parameter>chan &amp;openChan, chan &amp;closeChan</parameter>
+		<location id="id32" x="0" y="0">
+			<name x="-8" y="-34">i</name>
+		</location>
+		<init ref="id32"/>
+		<transition id="id33">
+			<source ref="id32"/>
+			<target ref="id32"/>
+			<label kind="synchronisation" x="136" y="0">closeChan!</label>
+			<nail x="9" y="0"/>
+			<nail x="119" y="60"/>
+			<nail x="119" y="-34"/>
+		</transition>
+		<transition id="id34">
+			<source ref="id32"/>
+			<target ref="id32"/>
+			<label kind="synchronisation" x="-187" y="0">openChan!</label>
+			<nail x="-110" y="60"/>
+			<nail x="-110" y="-34"/>
+		</transition>
+	</template>
+	<system>chan openDoorChan, closeDoorChan;
+chan lowerGearChan, raiseGearChan;
+
+DC = doorCylinder(openDoorChan,closeDoorChan,120,30,40,120);
+DoorTester = CylinderTester(openDoorChan, closeDoorChan);
+
+GC = gearCylinder(lowerGearChan, raiseGearChan, 80, 160, 40, 80, 120, 40);
+GearTester = CylinderTester(lowerGearChan, raiseGearChan);
+
+system DC, DoorTester, GC, GearTester;
+</system>
+	<queries>
+		<option key="--diagnostic" value="0"/>
+		<query>
+			<formula>A[] not deadlock</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2025-12-13 18:22:35 +0100">
+			</result>
+		</query>
+		<query>
+			<formula>E&lt;&gt; DC.opening</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2025-12-13 18:23:05 +0100">
+			</result>
+		</query>
+		<query>
+			<formula>E&lt;&gt; DC.closing</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2025-12-13 18:23:25 +0100">
+			</result>
+		</query>
+		<query>
+			<formula>E&lt;&gt; DC.Open</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2025-12-13 18:23:26 +0100">
+			</result>
+		</query>
+		<query>
+			<formula>E&lt;&gt; GC.lowering</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2025-12-13 20:03:23 +0100">
+				<option key="--diagnostic" value="0"/>
+			</result>
+		</query>
+		<query>
+			<formula>E&lt;&gt; GC.raising</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2025-12-13 20:03:34 +0100">
+				<option key="--diagnostic" value="0"/>
+			</result>
+		</query>
+		<query>
+			<formula>E&lt;&gt; GC.lockedDown</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2025-12-13 20:03:58 +0100">
+				<option key="--diagnostic" value="0"/>
+			</result>
+		</query>
+	</queries>
+</nta>

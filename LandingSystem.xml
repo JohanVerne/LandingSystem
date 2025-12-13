@@ -1,0 +1,614 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.6//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_6.dtd'>
+<nta>
+	<template>
+		<name>pilotCommandEmulator</name>
+		<parameter>chan &amp;handleActivated</parameter>
+		<location id="id0" x="-144" y="0">
+			<name x="-187" y="-8">Up</name>
+		</location>
+		<location id="id1" x="93" y="0">
+			<name x="119" y="-8">Down</name>
+		</location>
+		<init ref="id0"/>
+		<transition id="id2">
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="-93" y="51">handleActivated!</label>
+			<nail x="-25" y="51"/>
+		</transition>
+		<transition id="id3">
+			<source ref="id0"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="-93" y="-68">handleActivated!</label>
+			<nail x="-25" y="-42"/>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">analogSwitch</name>
+		<parameter>bool &amp;switchState, chan &amp;handle, chan &amp;inChan, bool &amp;inVal,  chan &amp;outputChan, bool &amp;outputVal</parameter>
+		<declaration>// time from open to closed : 0.8 secondes
+const int o2c = 8;
+
+// time from closed to opened : 1.2 secondes
+const int c2o = 12;
+
+// time for the switch to remain closed : 20 secondes
+const int cTime = 200;
+
+clock switchTimer;</declaration>
+		<location id="id4" x="-161" y="17">
+			<name x="-229" y="8">Opened</name>
+		</location>
+		<location id="id5" x="59" y="-195">
+			<name x="34" y="-246">Closing</name>
+			<label kind="invariant" x="9" y="-229">switchTimer&lt;=o2c</label>
+		</location>
+		<location id="id6" x="297" y="0">
+			<name x="229" y="-9">Closed</name>
+			<label kind="invariant" x="237" y="8">switchTimer&lt;=cTime</label>
+		</location>
+		<location id="id7" x="59" y="212">
+			<name x="34" y="229">Opening</name>
+			<label kind="invariant" x="9" y="246">switchTimer&lt;=c2o</label>
+		</location>
+		<location id="id8" x="501" y="-153">
+			<name x="518" y="-162">tempReset</name>
+			<committed/>
+		</location>
+		<location id="id9" x="501" y="153">
+			<name x="526" y="145">tempOutUpdate</name>
+			<committed/>
+		</location>
+		<init ref="id4"/>
+		<transition id="id10">
+			<source ref="id9"/>
+			<target ref="id6"/>
+			<label kind="synchronisation" x="263" y="102">outputChan!</label>
+			<label kind="assignment" x="297" y="127">outputVal=inVal</label>
+			<nail x="357" y="119"/>
+		</transition>
+		<transition id="id11">
+			<source ref="id6"/>
+			<target ref="id9"/>
+			<label kind="synchronisation" x="459" y="17">inChan?</label>
+			<nail x="442" y="25"/>
+		</transition>
+		<transition id="id12">
+			<source ref="id8"/>
+			<target ref="id6"/>
+			<label kind="assignment" x="450" y="-34">switchTimer=0</label>
+			<nail x="450" y="-34"/>
+		</transition>
+		<transition id="id13">
+			<source ref="id6"/>
+			<target ref="id8"/>
+			<label kind="synchronisation" x="314" y="-144">handle?</label>
+			<nail x="365" y="-127"/>
+		</transition>
+		<transition id="id14">
+			<source ref="id7"/>
+			<target ref="id5"/>
+			<label kind="synchronisation" x="68" y="-9">handle?</label>
+			<label kind="assignment" x="68" y="8">switchTimer=0</label>
+		</transition>
+		<transition id="id15">
+			<source ref="id7"/>
+			<target ref="id4"/>
+			<label kind="guard" x="-195" y="136">switchTimer&gt;=c2o</label>
+			<label kind="assignment" x="-170" y="153">switchTimer=0</label>
+		</transition>
+		<transition id="id16">
+			<source ref="id6"/>
+			<target ref="id7"/>
+			<label kind="guard" x="136" y="144">switchTimer&gt;=cTime</label>
+			<label kind="synchronisation" x="136" y="161">outputChan!</label>
+			<label kind="assignment" x="136" y="178">switchTimer=0, outputVal=false, 
+switchState=false</label>
+		</transition>
+		<transition id="id17">
+			<source ref="id5"/>
+			<target ref="id6"/>
+			<label kind="guard" x="153" y="-204">switchTimer&gt;=o2c</label>
+			<label kind="synchronisation" x="289" y="-204">outputChan!</label>
+			<label kind="assignment" x="153" y="-187">switchTimer=0, 
+switchState=true, 
+outputVal=inVal</label>
+		</transition>
+		<transition id="id18">
+			<source ref="id4"/>
+			<target ref="id5"/>
+			<label kind="synchronisation" x="-153" y="-76">handle?</label>
+			<label kind="assignment" x="-178" y="-93">switchTimer=0</label>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">electroValve</name>
+		<parameter>int &amp;Hin, bool &amp;EVal, chan &amp;EChan, int &amp;HoutVal, chan &amp;HoutChan </parameter>
+		<declaration>// time for the pressure to go from 0 to Hin
+int pGrowTime = 100;
+
+// time for the pressure to go from Hin to 0
+int pReduceTime = 360;
+
+// time to increment pressure (as % of Hin/(pressure transition time))
+int incremValue = 10;
+
+// Hin value to only have integer values in calculations 
+// Suppose Hin constant to keep Hin as int instead of double, which would break symbolic simulator and tests
+clock timer;</declaration>
+		<location id="id19" x="-697" y="-238">
+			<name x="-722" y="-272">Opened</name>
+		</location>
+		<location id="id20" x="-382" y="-25">
+			<name x="-391" y="-68">Closing</name>
+			<label kind="invariant" x="-391" y="0">HoutVal &lt;= Hin + 20</label>
+		</location>
+		<location id="id21" x="-816" y="-25">
+			<name x="-901" y="-85">Opening</name>
+			<label kind="invariant" x="-875" y="-68">HoutVal&gt;=0</label>
+		</location>
+		<location id="id22" x="-518" y="229">
+			<name x="-543" y="246">Closed</name>
+		</location>
+		<location id="id23" x="-441" y="-238">
+			<committed/>
+		</location>
+		<location id="id24" x="-790" y="229">
+			<committed/>
+		</location>
+		<location id="id25" x="-603" y="-85">
+			<committed/>
+		</location>
+		<location id="id26" x="-603" y="68">
+			<committed/>
+		</location>
+		<init ref="id19"/>
+		<transition id="id27">
+			<source ref="id26"/>
+			<target ref="id20"/>
+			<label kind="guard" x="-586" y="0">EVal == true</label>
+		</transition>
+		<transition id="id28">
+			<source ref="id25"/>
+			<target ref="id21"/>
+			<label kind="guard" x="-722" y="-51">EVal == false</label>
+		</transition>
+		<transition id="id29">
+			<source ref="id25"/>
+			<target ref="id20"/>
+			<label kind="guard" x="-569" y="-85">EVal == true</label>
+			<label kind="assignment" x="-569" y="-68">timer = 0</label>
+			<nail x="-484" y="-85"/>
+		</transition>
+		<transition id="id30">
+			<source ref="id26"/>
+			<target ref="id21"/>
+			<label kind="guard" x="-714" y="26">EVal == false</label>
+			<label kind="assignment" x="-714" y="43">timer = 0</label>
+			<nail x="-697" y="68"/>
+		</transition>
+		<transition id="id31">
+			<source ref="id20"/>
+			<target ref="id26"/>
+			<label kind="synchronisation" x="-569" y="68">EChan?</label>
+			<nail x="-501" y="68"/>
+		</transition>
+		<transition id="id32">
+			<source ref="id24"/>
+			<target ref="id22"/>
+			<label kind="guard" x="-714" y="162">EVal == true</label>
+			<label kind="assignment" x="-697" y="196">timer = 0</label>
+			<nail x="-663" y="187"/>
+		</transition>
+		<transition id="id33">
+			<source ref="id24"/>
+			<target ref="id21"/>
+			<label kind="guard" x="-909" y="186">EVal == false</label>
+			<label kind="assignment" x="-892" y="203">timer = 0</label>
+		</transition>
+		<transition id="id34">
+			<source ref="id22"/>
+			<target ref="id24"/>
+			<label kind="synchronisation" x="-748" y="237">EChan?</label>
+		</transition>
+		<transition id="id35">
+			<source ref="id23"/>
+			<target ref="id19"/>
+			<label kind="guard" x="-629" y="-203">EVal == false</label>
+			<label kind="assignment" x="-621" y="-186">timer = 0</label>
+			<nail x="-578" y="-195"/>
+		</transition>
+		<transition id="id36">
+			<source ref="id23"/>
+			<target ref="id20"/>
+			<label kind="guard" x="-407" y="-212">EVal == true</label>
+			<label kind="assignment" x="-407" y="-195">timer = 0</label>
+		</transition>
+		<transition id="id37">
+			<source ref="id21"/>
+			<target ref="id25"/>
+			<label kind="synchronisation" x="-722" y="-102">EChan?</label>
+			<nail x="-706" y="-85"/>
+		</transition>
+		<transition id="id38">
+			<source ref="id21"/>
+			<target ref="id19"/>
+			<label kind="guard" x="-850" y="-229">HoutVal &lt;= 0</label>
+			<label kind="synchronisation" x="-841" y="-246">HoutChan!</label>
+			<label kind="assignment" x="-867" y="-212">HoutVal = 0</label>
+		</transition>
+		<transition id="id39">
+			<source ref="id20"/>
+			<target ref="id22"/>
+			<label kind="guard" x="-416" y="178">HoutVal &gt;=Hin</label>
+			<label kind="synchronisation" x="-416" y="212">HoutChan!</label>
+			<label kind="assignment" x="-416" y="195">HoutVal = Hin</label>
+		</transition>
+		<transition id="id40">
+			<source ref="id21"/>
+			<target ref="id21"/>
+			<label kind="guard" x="-1377" y="-51">timer &gt;= incremValue / pReduceTime &amp;&amp; HoutVal &gt; 0</label>
+			<label kind="synchronisation" x="-1054" y="-34">HoutChan!</label>
+			<label kind="assignment" x="-1275" y="-8">timer = 0,
+HoutVal = HoutVal - ((Hin / pReduceTime) * incremValue)</label>
+			<nail x="-969" y="17"/>
+			<nail x="-969" y="-59"/>
+		</transition>
+		<transition id="id41">
+			<source ref="id20"/>
+			<target ref="id20"/>
+			<label kind="guard" x="-221" y="-42">timer &gt;= incremValue / pGrowTime &amp;&amp; HoutVal &lt; Hin</label>
+			<label kind="synchronisation" x="-221" y="17">HoutChan!</label>
+			<label kind="assignment" x="-221" y="-25">timer = 0,
+HoutVal = HoutVal + (Hin / pGrowTime) * incremValue</label>
+			<nail x="-229" y="17"/>
+			<nail x="-229" y="-59"/>
+		</transition>
+		<transition id="id42">
+			<source ref="id19"/>
+			<target ref="id23"/>
+			<label kind="synchronisation" x="-646" y="-263">EChan?</label>
+		</transition>
+	</template>
+	<template>
+		<name>valveToValveConverter</name>
+		<parameter>int &amp;HinMax, int &amp;HinVal, chan &amp;HinChan, bool &amp;HoutVal, chan &amp;HoutChan</parameter>
+		<location id="id43" x="-263" y="-68">
+		</location>
+		<location id="id44" x="-450" y="-68">
+			<committed/>
+		</location>
+		<init ref="id43"/>
+		<transition id="id45">
+			<source ref="id44"/>
+			<target ref="id43"/>
+			<label kind="guard" x="-434" y="-8">HinVal != HinMax</label>
+			<label kind="synchronisation" x="-434" y="8">HoutChan!</label>
+			<label kind="assignment" x="-434" y="25">HoutVal = false</label>
+			<nail x="-357" y="-8"/>
+		</transition>
+		<transition id="id46">
+			<source ref="id44"/>
+			<target ref="id43"/>
+			<label kind="guard" x="-399" y="-144">HinVal == HinMax</label>
+			<label kind="synchronisation" x="-399" y="-178">HoutChan!</label>
+			<label kind="assignment" x="-399" y="-161">HoutVal = true</label>
+			<nail x="-356" y="-127"/>
+		</transition>
+		<transition id="id47">
+			<source ref="id43"/>
+			<target ref="id44"/>
+			<label kind="synchronisation" x="-382" y="-93">HinChan?</label>
+		</transition>
+	</template>
+	<template>
+		<name>valveToCylinderConverter</name>
+		<parameter>int &amp;HinMax, int &amp;HinVal, chan &amp;HinChan, chan &amp;isPressurizedChan, bool &amp;isPressurized</parameter>
+		<location id="id48" x="-68" y="-17">
+		</location>
+		<location id="id49" x="-246" y="-17">
+			<committed/>
+		</location>
+		<init ref="id48"/>
+		<transition id="id50">
+			<source ref="id49"/>
+			<target ref="id48"/>
+			<label kind="guard" x="-238" y="68">HinVal != HinMax</label>
+			<label kind="synchronisation" x="-238" y="51">isPressurizedChan!</label>
+			<label kind="assignment" x="-238" y="85">isPressurized = false</label>
+			<nail x="-153" y="51"/>
+		</transition>
+		<transition id="id51">
+			<source ref="id49"/>
+			<target ref="id48"/>
+			<label kind="guard" x="-204" y="-136">HinVal == HinMax</label>
+			<label kind="synchronisation" x="-204" y="-119">isPressurizedChan!</label>
+			<label kind="assignment" x="-204" y="-102">isPressurized = true</label>
+			<nail x="-153" y="-85"/>
+		</transition>
+		<transition id="id52">
+			<source ref="id48"/>
+			<target ref="id49"/>
+			<label kind="synchronisation" x="-178" y="-42">HinChan?</label>
+		</transition>
+	</template>
+	<template>
+		<name x="9" y="9">doorCylinder</name>
+		<parameter>chan &amp;doorOpeningCommandChan, bool &amp;shouldOpenDoor, int timeClosedToOpened, int timeLockClose, int timeUnlockClosed, int timeOpenedToClosed, chan &amp;isOpenedChan</parameter>
+		<declaration>clock timer;
+</declaration>
+		<location id="id53" x="-34" y="-144">
+			<name x="-76" y="-178">lockedClose</name>
+		</location>
+		<location id="id54" x="94" y="-42">
+			<name x="111" y="-59">unlockingfromClosed</name>
+			<label kind="invariant" x="111" y="-42">timer&lt;=timeUnlockClosed</label>
+		</location>
+		<location id="id55" x="94" y="68">
+			<name x="111" y="60">opening</name>
+			<label kind="invariant" x="111" y="77">timer &lt;=timeClosedToOpened</label>
+		</location>
+		<location id="id56" x="-34" y="170">
+			<name x="-51" y="187">Open</name>
+		</location>
+		<location id="id57" x="-161" y="68">
+			<name x="-238" y="51">closing</name>
+			<label kind="invariant" x="-391" y="68">timer &lt;=timeOpenedToClosed</label>
+		</location>
+		<location id="id58" x="-161" y="-51">
+			<name x="-289" y="-68">lockingClosed</name>
+			<label kind="invariant" x="-365" y="-51">timer &lt;= timeLockClose</label>
+		</location>
+		<location id="id59" x="93" y="-144">
+			<committed/>
+		</location>
+		<location id="id60" x="-161" y="169">
+			<committed/>
+		</location>
+		<init ref="id53"/>
+		<transition id="id61">
+			<source ref="id58"/>
+			<target ref="id58"/>
+			<label kind="synchronisation" x="-382" y="-85">doorOpeningCommandChan?</label>
+			<nail x="-195" y="-17"/>
+			<nail x="-195" y="-85"/>
+		</transition>
+		<transition id="id62">
+			<source ref="id57"/>
+			<target ref="id57"/>
+			<label kind="guard" x="-459" y="34">shouldOpenDoor == false</label>
+			<label kind="synchronisation" x="-450" y="51">doorOpeningCommandChan?</label>
+			<nail x="-212" y="102"/>
+			<nail x="-212" y="34"/>
+		</transition>
+		<transition id="id63">
+			<source ref="id55"/>
+			<target ref="id55"/>
+			<label kind="guard" x="229" y="42">shouldOpenDoor == true</label>
+			<label kind="synchronisation" x="229" y="59">doorOpeningCommandChan?</label>
+			<nail x="144" y="102"/>
+			<nail x="144" y="51"/>
+		</transition>
+		<transition id="id64">
+			<source ref="id54"/>
+			<target ref="id54"/>
+			<label kind="synchronisation" x="280" y="-59">doorOpeningCommandChan?</label>
+			<nail x="136" y="-8"/>
+			<nail x="136" y="-68"/>
+		</transition>
+		<transition id="id65">
+			<source ref="id60"/>
+			<target ref="id56"/>
+			<label kind="guard" x="-153" y="110">shouldOpenDoor == true</label>
+			<nail x="-93" y="135"/>
+		</transition>
+		<transition id="id66">
+			<source ref="id60"/>
+			<target ref="id57"/>
+			<label kind="guard" x="-348" y="102">shouldOpenDoor == false</label>
+			<label kind="assignment" x="-238" y="119">timer = 0</label>
+		</transition>
+		<transition id="id67">
+			<source ref="id59"/>
+			<target ref="id53"/>
+			<label kind="guard" x="-93" y="-102">shouldOpenDoor == false</label>
+			<nail x="34" y="-102"/>
+		</transition>
+		<transition id="id68">
+			<source ref="id59"/>
+			<target ref="id54"/>
+			<label kind="guard" x="93" y="-110">shouldOpenDoor == true</label>
+			<label kind="assignment" x="93" y="-93">timer=0</label>
+		</transition>
+		<transition id="id69">
+			<source ref="id57"/>
+			<target ref="id55"/>
+			<label kind="guard" x="-119" y="-51">shouldOpenDoor == true</label>
+			<label kind="synchronisation" x="-110" y="-34">doorOpeningCommandChan?</label>
+			<label kind="assignment" x="-68" y="-17">timer = 0</label>
+			<nail x="-34" y="0"/>
+		</transition>
+		<transition id="id70">
+			<source ref="id55"/>
+			<target ref="id57"/>
+			<label kind="guard" x="-119" y="51">shouldOpenDoor == false</label>
+			<label kind="synchronisation" x="-110" y="68">doorOpeningCommandChan?</label>
+			<label kind="assignment" x="-76" y="85">timer = 0</label>
+		</transition>
+		<transition id="id71">
+			<source ref="id57"/>
+			<target ref="id58"/>
+			<label kind="guard" x="-374" y="-8">timer&gt;=timeOpenedToClosed</label>
+			<label kind="assignment" x="-255" y="9">timer = 0</label>
+		</transition>
+		<transition id="id72">
+			<source ref="id58"/>
+			<target ref="id53"/>
+			<label kind="guard" x="-272" y="-136">timer &gt;= timeLockClose</label>
+		</transition>
+		<transition id="id73">
+			<source ref="id56"/>
+			<target ref="id60"/>
+			<label kind="synchronisation" x="-204" y="204">doorOpeningCommandChan?</label>
+		</transition>
+		<transition id="id74">
+			<source ref="id55"/>
+			<target ref="id56"/>
+			<label kind="guard" x="26" y="119">timer &gt;=timeClosedToOpened</label>
+			<label kind="synchronisation" x="25" y="136">isOpenedChan!</label>
+		</transition>
+		<transition id="id75">
+			<source ref="id54"/>
+			<target ref="id55"/>
+			<label kind="guard" x="102" y="0">timer&gt;=timeUnlockClosed</label>
+			<label kind="assignment" x="102" y="17">timer = 0</label>
+		</transition>
+		<transition id="id76">
+			<source ref="id53"/>
+			<target ref="id59"/>
+			<label kind="synchronisation" x="17" y="-187">doorOpeningCommandChan?</label>
+		</transition>
+	</template>
+	<template>
+		<name>gearCylinder</name>
+		<parameter>chan &amp;lowerChan, chan &amp;raiseChan, int timeUnlockDown, int timeDownToHigh, int timeLockHigh, int timeUnlockHigh, int timeHighToDown, int timeLockDown</parameter>
+		<declaration>clock timer;</declaration>
+		<location id="id77" x="-51" y="-476">
+			<name x="-85" y="-510">lockedHigh</name>
+		</location>
+		<location id="id78" x="85" y="-374">
+			<name x="111" y="-391">unlockingFromHigh</name>
+			<label kind="invariant" x="102" y="-374">timer&lt;=timeUnlockHigh</label>
+		</location>
+		<location id="id79" x="85" y="-246">
+			<name x="102" y="-263">lowering</name>
+			<label kind="invariant" x="102" y="-246">timer &lt;= timeHighToDown</label>
+		</location>
+		<location id="id80" x="85" y="-110">
+			<name x="102" y="-119">lockingDown</name>
+			<label kind="invariant" x="102" y="-102">timer &lt;= timeLockDown</label>
+		</location>
+		<location id="id81" x="-42" y="-17">
+			<name x="-85" y="9">lockedDown</name>
+		</location>
+		<location id="id82" x="-178" y="-374">
+			<name x="-289" y="-391">lockingHigh</name>
+			<label kind="invariant" x="-374" y="-374">timer &lt;= timeLockHigh</label>
+		</location>
+		<location id="id83" x="-178" y="-246">
+			<name x="-255" y="-263">raising</name>
+			<label kind="invariant" x="-382" y="-246">timer &lt;= timeDownToHigh</label>
+		</location>
+		<location id="id84" x="-178" y="-110">
+			<name x="-348" y="-119">unlockingFromDown</name>
+			<label kind="invariant" x="-391" y="-102">timer &lt;= timeUnlockDown</label>
+		</location>
+		<init ref="id77"/>
+		<transition id="id85">
+			<source ref="id79"/>
+			<target ref="id83"/>
+			<label kind="synchronisation" x="-93" y="-340">raiseChan?</label>
+			<label kind="assignment" x="-93" y="-323">timer = 0</label>
+			<nail x="-51" y="-297"/>
+		</transition>
+		<transition id="id86">
+			<source ref="id83"/>
+			<target ref="id79"/>
+			<label kind="synchronisation" x="-93" y="-178">lowerChan?</label>
+			<label kind="assignment" x="-93" y="-161">timer = 0</label>
+			<nail x="-51" y="-178"/>
+		</transition>
+		<transition id="id87">
+			<source ref="id82"/>
+			<target ref="id77"/>
+			<label kind="guard" x="-263" y="-467">timer &gt;= timeLockHigh</label>
+		</transition>
+		<transition id="id88">
+			<source ref="id83"/>
+			<target ref="id82"/>
+			<label kind="guard" x="-374" y="-340">timer &gt;= timeDownToHigh</label>
+			<label kind="assignment" x="-263" y="-323">timer = 0</label>
+		</transition>
+		<transition id="id89">
+			<source ref="id84"/>
+			<target ref="id83"/>
+			<label kind="guard" x="-382" y="-178">timer &gt;= timeUnlockDown</label>
+			<label kind="assignment" x="-272" y="-195">timer = 0</label>
+		</transition>
+		<transition id="id90">
+			<source ref="id81"/>
+			<target ref="id84"/>
+			<label kind="synchronisation" x="-195" y="-68">raiseChan?</label>
+			<label kind="assignment" x="-187" y="-51">timer = 0</label>
+		</transition>
+		<transition id="id91">
+			<source ref="id80"/>
+			<target ref="id81"/>
+			<label kind="guard" x="26" y="-59">timer &gt;= timeLockDown</label>
+		</transition>
+		<transition id="id92">
+			<source ref="id79"/>
+			<target ref="id80"/>
+			<label kind="guard" x="102" y="-187">timer &gt;= timeHighToDown</label>
+			<label kind="assignment" x="102" y="-170">timer = 0</label>
+		</transition>
+		<transition id="id93">
+			<source ref="id78"/>
+			<target ref="id79"/>
+			<label kind="guard" x="111" y="-314">timer &gt;= timeUnlockHigh</label>
+			<label kind="assignment" x="111" y="-297">timer = 0</label>
+		</transition>
+		<transition id="id94">
+			<source ref="id77"/>
+			<target ref="id78"/>
+			<label kind="synchronisation" x="26" y="-450">lowerChan?</label>
+			<label kind="assignment" x="34" y="-433">timer = 0</label>
+		</transition>
+	</template>
+	<system>// Pilot Handle definition
+chan pilotHandleChan;
+pilotHandle = pilotCommandEmulator(pilotHandleChan);
+
+// Analog Switch definition
+chan switchInSignalChan, switchOutSignalChan;
+bool switchState = false, switchElectricalInput = true, switchElectricalOutput = false;
+AnalogSwitch = analogSwitch(switchState, pilotHandleChan, switchInSignalChan, switchElectricalInput, switchOutSignalChan, switchElectricalOutput);
+
+//General electrovalve definition
+int Hin = 360;
+chan generalValveOutputChan;
+int generalValveOutput;
+GenEV = electroValve(Hin, switchElectricalOutput, switchOutSignalChan, generalValveOutput, generalValveOutputChan);
+
+// Gen valve to door valve converter
+chan gV2dVChan;
+bool gV2dVOutput;
+GenEV2DoorValveConv = valveToValveConverter(Hin, generalValveOutput, generalValveOutputChan, gV2dVOutput, gV2dVChan);
+
+// Door electrovalve definition
+chan doorValveOutputChan;
+int doorValveOutput;
+DoorEV = electroValve(Hin, gV2dVOutput, gV2dVChan, doorValveOutput, doorValveOutputChan);
+
+// Door valve to door cylinder definition
+chan doorConverterChan;
+bool doorOpeningCommand = false;
+DoorEV2DoorCylinderConv = valveToCylinderConverter(Hin, doorValveOutput, doorValveOutputChan, doorConverterChan, doorOpeningCommand);
+
+// Door Cylinder definition (front door)
+chan isFinishedOpeningChan;
+DoorCylinder = doorCylinder(doorConverterChan, doorOpeningCommand, 120, 30, 40 ,120, isFinishedOpeningChan);
+
+// Gear Cylinder definition (front gear)
+GearCylinder = gearCylinder(isFinishedOpeningChan, isFinishedOpeningChan, 80, 160, 40, 80, 120, 40);
+
+// Creation of the system
+system pilotHandle, AnalogSwitch, GenEV, GenEV2DoorValveConv, DoorEV, DoorEV2DoorCylinderConv, DoorCylinder, GearCylinder;</system>
+	<queries>
+		<query>
+			<formula/>
+			<comment/>
+		</query>
+	</queries>
+</nta>
